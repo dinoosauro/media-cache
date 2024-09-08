@@ -2,11 +2,11 @@
 
 Cache the video/audio content displayed by various websites, and download it
 
-## Installation:
+## Installation:
 
-First, download the
-[.zip file](https://codeload.github.com/Dinoosauro/media-cache/zip/refs/heads/main)
-of this repository. Then, follow the instructions of your browser.
+Download the zip file for your browser from the
+[Releases tab](https://github.com/Dinoosauro/media-cache/releases). Then,
+depending on your browser:
 
 ### Chromium:
 
