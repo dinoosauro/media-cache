@@ -1,0 +1,4 @@
+node_modules
+package-lock.json
+Output-Chromium.zip
+Output-Firefox.zip

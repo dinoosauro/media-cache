@@ -1,0 +1,31 @@
+{
+    "manifest_version": 3,
+    "name": "MediaCache",
+    "description": "Cache the video/audio content displayed by various websites, and download it",
+    "version": "1",
+    "action": {
+        "default_popup": "./ui/ui.html"
+    },
+    "permissions": [
+        "activeTab",
+        "scripting",
+        "storage",
+        "tabs"
+    ],
+    "host_permissions": [
+        "<all_urls>"
+    ],
+    "background": {
+        "service_worker": "background.js"
+    },
+    "browser_specific_settings": {
+        "gecko": {
+            "id": "{b9d8670c-5367-4fe8-8730-b697b6dc0234}"
+        }
+    },
+    "icons": {
+        "16": "./ui/assets/icon-16.png",
+        "48": "./ui/assets/icon-48.png",
+        "128": "./ui/assets/icon-128.png"
+    }
+}

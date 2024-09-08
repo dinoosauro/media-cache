@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediaCache</title>
+    <link rel="stylesheet" href="./style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Work+Sans:ital,wght@0,100..900;1,100..900&display=swap"
+        rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="./assets/icon.svg" />
+</head>
+
+<body>
+    <header>
+        <div class="flex hcenter wcenter gap">
+            <img src="./assets/icon.svg" style="width: 48px; height: 48px;">
+            <h1>MediaCache</h1>
+        </div>
+        <p>Download the media content you see on websites</p>
+    </header>
+    <main>
+        <div class="card" id="notWorking" style="background-color: darkred; display: none;">
+            <h2>The script isn't running on this page.</h2>
+            <p>Make sure you've added this hostname in the list, then close the webpage and open it again.
+                You can also force running the script by clicking the button below. It's important that you enable this
+                extension before the website loads the video content.</p>
+            <button id="forceRun">Force script run</button>
+        </div><br>
+        <div class="card">
+            <h2>Allowed sites:</h2>
+            <p>MediaCache automatically stores the video/audio data of the following sites. While only a few have been
+                tested, the extension should work with every website that uses the MediaSource API. Please make sure to
+                have the authorization of the owner of that content before using this extension.</p>
+            <ul id="allowedList"></ul><br>
+            <div class="card" style="background-color: var(--cardsecond);">
+                <h3>Add new website:</h3>
+                <div class="flex hcenter gap">
+                    <label class="flex hcenter gap" style="width: 100%;">
+                        Hostname:
+                        <input type="text" id="newHostname" placeholder="https://*.example.com/">
+                    </label>
+                    <button style="width: fit-content" id="addHostname">Add</button>
+                </div>
+            </div>
+        </div><br>
+        <div class="card">
+            <h2>Available downloads:</h2>
+            <p>On mobile devices, multiple downloads could be limited. It can be a great idea to download the video from
+                here before closing the page. Downloading a video automatically clears it from memory. This section will
+                be empty if the File System API will be used.</p>
+            <select id="availableTabs"></select><br><br>
+            <div id="availableDownloads"></div><br>
+            <button id="chooseDirectory">Save directly on the file system</button>
+        </div><br>
+        <div class="card">
+            <h2>FAQ:</h2>
+            <details>
+                <summary>Why doesn't the extension work?</summary>
+                <p>Make sure the hostname syntax is correct (for example: <code>*://*.YOURDOMAIN.com/*</code>). Note
+                    that you'll need to close and open again the webpage, since, if the webiste initializes the
+                    MediaSource immediately without user interaction, the extension isn't able to extract the data
+                    later.</p>
+            </details>
+            <details>
+                <summary>Open Source licenses</summary>
+                <p>Icon from Microsoft's <a href="https://github.com/microsoft/fluentui-system-icons"
+                        target="_blank">Fluent UI Icons</a>. This extension is available <a
+                        href="https://github.com/Dinoosauro/media-cache" target="_blank">on GitHub</a></p>
+            </details>
+        </div>
+        <script src="./comms.js"></script>
+    </main>
+</body>
+
+</html>

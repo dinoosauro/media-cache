@@ -1,0 +1,51 @@
+:root {
+    --background: #151515;
+    --text: #fafafa;
+    --font: "Work Sans", sans-serif;
+    --card: #313131;
+    --cardsecond: #515151;
+    --accent: #27778d;
+}
+body {
+    padding: 10px;
+    background-color: var(--background);
+    color: var(--text);
+    font-family: var(--font);
+}
+.card {
+    padding: 10px;
+    border-radius: 8px;
+    background-color: var(--card);
+}
+.flex {
+    display: flex;
+}
+.hcenter {
+    align-items: center;
+}
+.wcenter {
+    justify-self: center;
+}
+.gap {
+    gap: 10px;
+}
+button, input, select {
+    background-color: var(--card);
+    font-family: var(--font);
+    border: 1px solid var(--text);
+    border-radius: 8px;
+    width: 100%;
+    width: -webkit-fill-available;
+    width: -moz-available;
+    padding: 10px;
+    color: var(--text);
+}
+select {
+    background-color: var(--cardsecond);
+}
+button {
+    background-color: var(--accent);
+}
+a {
+    color: var(--text);
+}
