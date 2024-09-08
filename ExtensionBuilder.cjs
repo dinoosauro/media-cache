@@ -1,6 +1,7 @@
 const fs = require("fs");
 const jszip = require("jszip");
 const { sep } = require("path");
+const crypto = require("crypto");
 
 const id = crypto.randomUUID().replaceAll("-", "");
 function adaptContent(text, isFirefox) {
