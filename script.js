@@ -44,7 +44,7 @@
                 if (!arr[arrLength]) return;
                 if (document.readyState === "complete") {
                     arr[arrLength].title = (`${getSuggestedTitle()} [${mimeType.substring(0, mimeType.indexOf("/"))} ${arrLength}].${mimeType.substring(mimeType.indexOf("/") + 1, mimeType.indexOf(";", mimeType.indexOf("/")))}`).replaceAll("<", "‹").replaceAll(">", "›").replaceAll(":", "∶").replaceAll("\"", "″").replaceAll("/", "∕").replaceAll("\\", "∖").replaceAll("|", "¦").replaceAll("?", "¿").replaceAll("*", "");
-                } else setTimeout(() => addTitle(), 1500);
+                } else setTimeout(() => addTitle(), 1500); // We'll try again when the page has been loaded
             }
             arr[arrLength] = { mimeType, data: [], title: document.title };
             setTimeout(() => addTitle(), 1500); // Let's wait a little bit so that the title on the page can be updated
