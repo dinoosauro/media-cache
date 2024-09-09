@@ -12,6 +12,9 @@ function adaptContent(text, isFirefox) {
 
 for (const firefox of [true, false]) {
     const outputZip = new jszip();
-    for (const file of ["background.js", "bridge.js", "manifest.json", "script.js", `ui${sep}comms.js`, `ui${sep}style.css`, `ui${sep}ui.html`, `ui${sep}assets${sep}icon-16.png`, `ui${sep}assets${sep}icon-48.png`, `ui${sep}assets${sep}icon-128.png`, `ui${sep}assets${sep}icon.svg`]) outputZip.file(file, adaptContent(fs.readFileSync(file, "utf-8"), firefox));
+    for (const file of ["background.js", "bridge.js", "manifest.json", "script.js", `ui${sep}comms.js`, `ui${sep}style.css`, `ui${sep}ui.html`, `ui${sep}assets${sep}icon-16.png`, `ui${sep}assets${sep}icon-48.png`, `ui${sep}assets${sep}icon-128.png`, `ui${sep}assets${sep}icon.svg`]) {
+        const output = file.endsWith("png") ? fs.readFileSync(file) : adaptContent(fs.readFileSync(file, "utf-8"), firefox)
+        outputZip.file(file, output);
+    }
     outputZip.generateAsync({ type: "nodebuffer" }).then((buffer) => fs.writeFileSync(`Output-${firefox ? "Firefox" : "Chromium"}.zip`, buffer));
 }

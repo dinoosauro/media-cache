@@ -37,7 +37,17 @@
              * The position of this SourceBuffer in the array
              */
             const arrLength = arr.length;
-            arr[arrLength] = { mimeType, data: [], title: (`${getSuggestedTitle()} [${mimeType.substring(0, mimeType.indexOf("/"))} ${arrLength}].${mimeType.substring(mimeType.indexOf("/") + 1, mimeType.indexOf(";", mimeType.indexOf("/")))}`).replaceAll("<", "‹").replaceAll(">", "›").replaceAll(":", "∶").replaceAll("\"", "″").replaceAll("/", "∕").replaceAll("\\", "∖").replaceAll("|", "¦").replaceAll("?", "¿").replaceAll("*", ""), };
+            /**
+             * Get the suggested title for the item
+             */
+            function addTitle() {
+                if (!arr[arrLength]) return;
+                if (document.readyState === "complete") {
+                    arr[arrLength].title = (`${getSuggestedTitle()} [${mimeType.substring(0, mimeType.indexOf("/"))} ${arrLength}].${mimeType.substring(mimeType.indexOf("/") + 1, mimeType.indexOf(";", mimeType.indexOf("/")))}`).replaceAll("<", "‹").replaceAll(">", "›").replaceAll(":", "∶").replaceAll("\"", "″").replaceAll("/", "∕").replaceAll("\\", "∖").replaceAll("|", "¦").replaceAll("?", "¿").replaceAll("*", "");
+                } else setTimeout(() => addTitle(), 1500);
+            }
+            arr[arrLength] = { mimeType, data: [], title: document.title };
+            setTimeout(() => addTitle(), 1500); // Let's wait a little bit so that the title on the page can be updated
             if (picker !== undefined) {
                 picker.getFileHandle(arr.title, { create: true }).then((handle) => {
                     handle.createWritable().then(async (writable) => { // Write the previously-fetched data on the file, and delete it.
