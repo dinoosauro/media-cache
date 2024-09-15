@@ -34,43 +34,43 @@
              */
             const sourceBuffer = originalAddSourceBuffer.call(this, mimeType);
             /**
-             * The position of this SourceBuffer in the array
-             */
-            const arrLength = arr.length;
-            /**
              * Get the suggested title for the item
+             * @param id the ID of the item that should be added
              */
-            function addTitle() {
-                if (!arr[arrLength]) return;
-                if (document.readyState === "complete") {
-                    arr[arrLength].title = (`${getSuggestedTitle()} [${mimeType.substring(0, mimeType.indexOf("/"))} ${arrLength}].${mimeType.substring(mimeType.indexOf("/") + 1, mimeType.indexOf(";", mimeType.indexOf("/")))}`).replaceAll("<", "‹").replaceAll(">", "›").replaceAll(":", "∶").replaceAll("\"", "″").replaceAll("/", "∕").replaceAll("\\", "∖").replaceAll("|", "¦").replaceAll("?", "¿").replaceAll("*", "");
-                } else setTimeout(() => addTitle(), 1500); // We'll try again when the page has been loaded
+            function addTitle(id) {
+                const currentItem = arr.find(item => item.id === id);
+                if (!currentItem) return;
+                currentItem.title = (`${getSuggestedTitle()} [${mimeType.substring(0, mimeType.indexOf("/"))} ${id}].${mimeType.substring(mimeType.indexOf("/") + 1, mimeType.indexOf(";", mimeType.indexOf("/")))}`).replaceAll("<", "‹").replaceAll(">", "›").replaceAll(":", "∶").replaceAll("\"", "″").replaceAll("/", "∕").replaceAll("\\", "∖").replaceAll("|", "¦").replaceAll("?", "¿").replaceAll("*", "");
+                document.readyState !== "complete" && setTimeout(() => addTitle(id), 1500); // We'll try again when the page has been loaded
             }
-            arr[arrLength] = { mimeType, data: [], title: document.title };
-            setTimeout(() => addTitle(), 1500); // Let's wait a little bit so that the title on the page can be updated
+            const id = crypto.randomUUID() ?? `${Math.random()}-${mimeType}-${Date.now()}`;
+            arr[arr.length] = { mimeType, data: [], title: document.title, id };
+            setTimeout(() => addTitle(id), 1500); // Let's wait a little bit so that the title on the page can be updated
             if (picker !== undefined) {
                 picker.getFileHandle(arr.title, { create: true }).then((handle) => {
                     handle.createWritable().then(async (writable) => { // Write the previously-fetched data on the file, and delete it.
                         let position = 0;
-                        while (arr[arrLength].data.length !== 0) {
-                            const data = arr[arrLength].data[0];
+                        const currentItem = arr.find(item => item.id === id);
+                        while (currentItem.data.length !== 0) {
+                            const data = currentItem.data[0];
                             await writable.write({ data, position, type: "write" });
                             position += data.byteLength;
-                            arr[arrLength].data.splice(0, 1);
+                            currentItem.data.splice(0, 1);
                         }
-                        arr[arrLength].currentWrite = position; // Save in the "currentWrite" key the position where further buffers should be written
-                        arr[arrLength].writable = writable; // And save the writable in the object, so that future data will be written there
+                        currentItem.currentWrite = position; // Save in the "currentWrite" key the position where further buffers should be written
+                        currentItem.writable = writable; // And save the writable in the object, so that future data will be written there
                     })
                 })
             }
             const originalAppend = sourceBuffer.appendBuffer;
             sourceBuffer.appendBuffer = function (data) {
-                if (arr[arrLength]) { // The item hasn't been deleted
-                    if (arr[arrLength].writable) { // The File System API is being used
-                        arr[arrLength].writable.write({ data, position: arr[arrLength].currentWrite, type: "write" })
-                        arr[arrLength].currentWrite += data.byteLength;
+                const currentItem = arr.find(item => item.id === id);
+                if (currentItem) { // The item hasn't been deleted
+                    if (currentItem.writable) { // The File System API is being used
+                        currentItem.writable.write({ data, position: currentItem.currentWrite, type: "write" })
+                        currentItem.currentWrite += data.byteLength;
                     } else {
-                        arr[arrLength].data.push(data);
+                        currentItem.data.push(data);
                     }
                 }
                 const result = originalAppend.call(this, data); // Do the thing that browsers normally do when adding a MediaSource
@@ -81,23 +81,24 @@
     }
     /**
      * Download an ArrayBuffer from the array
-     * @param {number} i the position in the array of the file to download
+     * @param {string} id the ID of the cached content to download
      */
-    function singleDownload(i) {
-        if (arr[i].writable || arr[i].data.length === 0) return;
+    function singleDownload(id) {
+        const currentItem = arr.find(item => item.id === id);
+        if (!currentItem || currentItem.writable || currentItem.data.length === 0) return;
         const a = Object.assign(document.createElement("a"), {
-            download: arr[i].title,
-            href: URL.createObjectURL(new Blob(arr[i].data))
+            download: currentItem.title,
+            href: URL.createObjectURL(new Blob(currentItem.data))
         });
         a.click();
-        arr[i].data = [];
+        currentItem.data = [];
     }
     /**
      * Download every ArrayBuffer stored
      */
     function startDownload() {
         for (let i = 0; i < arr.length; i++) {
-            singleDownload(i);
+            singleDownload(arr[i].id);
             arr[i]?.writable?.close();
         }
     }
@@ -106,6 +107,9 @@
     })
     await start();
     const comms = new BroadcastChannel("CUSTOM_MEDIACACHE_EXTENSION_COMMUNICATION"); // This is replaced every time the extension is built
+    window.addEventListener("beforeunload", () => {
+        startDownload();
+    })
     comms.onmessage = (msg) => {
         if (msg.data.from !== "a") return; // Receive requests only from the isolated content script
         switch (msg.data.action) {
@@ -116,7 +120,7 @@
                 arr = [];
                 break;
             case "getDownloads": // Return the downlaods available
-                comms.postMessage({ from: "b", action: "getDownloads", context: msg.data.content, content: arr.map((entry, i) => Object.assign(entry, { id: i })).filter(entry => !entry.writable && entry.data.length > 0) });
+                comms.postMessage({ from: "b", action: "getDownloads", context: msg.data.content, content: arr.filter(entry => !entry.writable && entry.data.length > 0) });
                 break;
             case "downloadThis": // Download the item in the data.content position
                 singleDownload(msg.data.content);
@@ -127,12 +131,11 @@
                 });
                 break;
             case "deleteThis":
-                if (msg.data.content.permanent) arr.splice(msg.data.content.id, 1); else arr[msg.data.content.id].data = [];
+                const getIndex = arr.findIndex(item => item.id === msg.data.content.id);
+                if (getIndex === -1) return;
+                if (msg.data.content.permanent) arr.splice(getIndex, 1); else arr[getIndex].data = [];
                 break;
         }
     };
-    window.addEventListener("beforeunload", () => {
-        startDownload();
-    })
 })()
 undefined;

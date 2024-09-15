@@ -73,6 +73,7 @@
             const card = document.createElement("div");
             card.classList.add("card");
             card.style.backgroundColor = "var(--cardsecond)";
+            card.style.marginBottom = "15px";
             card.append(Object.assign(document.createElement("h3"), {
                 textContent: `Content ${item.id} [${item.mimeType}]`,
             }), Object.assign(document.createElement("button"), {
@@ -87,6 +88,7 @@
                     textContent: "Delete current data",
                     onclick: () => {
                         browserToUse.tabs.sendMessage(+document.getElementById("availableTabs").value, { action: "deleteThis", content: { id: item.id, permanent: false } });
+                        card.remove();
                     }
                 }),
                 Object.assign(document.createElement("label"), {
@@ -94,9 +96,10 @@
                     style: "text-decoration: underline",
                     onclick: () => {
                         browserToUse.tabs.sendMessage(+document.getElementById("availableTabs").value, { action: "deleteThis", content: { id: item.id, permanent: true } });
+                        card.remove();
                     }
                 }));
-            document.getElementById("availableDownloads").append(card, document.createElement("br"));
+            document.getElementById("availableDownloads").append(card);
         }
 
     }

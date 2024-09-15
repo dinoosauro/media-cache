@@ -17,9 +17,30 @@ the .zip file, and the extension will be installed.
 
 ### Firefox
 
-Go to `about:debugging#/runtime/this-firefox`, and click on the
-`Load Temporary Add-on` button. Choose the .zip file, and the extension will be
-installed.
+Just download it from Mozilla Addons:
+https://addons.mozilla.org/it/firefox/addon/media-cache
+
+If you want to sideload it, go to `about:debugging#/runtime/this-firefox`, and
+click on the `Load Temporary Add-on` button. Choose the .zip file, and the
+extension will be installed.
+
+### Other browsers
+
+There's a script that can be run from the DevTools's console (or other tools
+that permit to run JavaScript code in webpages). Look at the
+[latest release](https://github.com/Dinoosauro/media-cache/releases), and
+copy/paste the:
+
+- `ConsoleScript-UI.js` file if you want to have a button at the top-right
+  corner to download the content
+- `ConsoleScript-Console.js` file if you want to use the script directly from
+  the console. Documentation on the available commands will be added soon.
+
+In case you've chosen the UI, you'll find a button with the download icon at the
+top-right. Click it to show the available downloads. To download an item, click
+it to load the Blob in the memory, and then click it again (before 5 seconds) if
+the download doesn't automatically start. You can also delete the content in
+memory if you think it's useless.
 
 ## Adding URLs to cache
 

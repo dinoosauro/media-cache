@@ -22,11 +22,17 @@ jobs:
       - uses: actions/checkout@v4
 
       # Runs a single command using the runners shell
-      - name: Install dependencies & build extension
-        run: npm i && node ExtensionBuilder.cjs
+      - name: Install dependencies
+        run: npm i
+      - name: Build extension
+        run: node ExtensionBuilder.cjs
+      - name: Build console script (without UI)
+        run: node ConsoleScript.js
+      - name: Build console script (with UI)
+        run: node ConsoleScript.js ui
       - name: Get last commit SHA
         run: echo "SHORT_COMMIT_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
       - name: Create Release
-        run: gh release create ${{ env.SHORT_COMMIT_SHA }} -t ${{ env.SHORT_COMMIT_SHA }} -n "Note that this release is automatically generated. No testing has been done." --generate-notes "Output-Chromium.zip" "Output-Firefox.zip"
+        run: gh release create ${{ env.SHORT_COMMIT_SHA }} -t ${{ env.SHORT_COMMIT_SHA }} -n "Note that this release is automatically generated. No testing has been done." --generate-notes "Output-Chromium.zip" "Output-Firefox.zip" "ConsoleScript-UI.js", "ConsoleScript-Console.js"
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
