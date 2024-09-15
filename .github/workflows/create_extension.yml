@@ -27,9 +27,9 @@ jobs:
       - name: Build extension
         run: node ExtensionBuilder.cjs
       - name: Build console script (without UI)
-        run: node ConsoleScript.js
+        run: node GenerateConsoleScript.cjs
       - name: Build console script (with UI)
-        run: node ConsoleScript.js ui
+        run: node GenerateConsoleScript.cjs ui
       - name: Get last commit SHA
         run: echo "SHORT_COMMIT_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
       - name: Create Release
