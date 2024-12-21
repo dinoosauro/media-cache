@@ -2,7 +2,7 @@
     /**
      * Get the suggested title for the file.
      * NOTE: These are only examples from two popular streaming sites. Before downloading anything from them, ensure you've authorization from the channel owner, and download them only in the cases provided for their Terms of Service.
-     * @returns the suggested title for the file
+     * @returns an array, with [the suggested title for the file, and if the result should be final (true) or not (false). In this last case, it's suggested to check again later for another title]
      */
     function getSuggestedTitle() {
         const [title, id] = (() => {
