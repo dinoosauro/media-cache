@@ -33,6 +33,6 @@ jobs:
       - name: Get last commit SHA
         run: echo "SHORT_COMMIT_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
       - name: Create Release
-        run: gh release create ${{ env.SHORT_COMMIT_SHA }} -t ${{ env.SHORT_COMMIT_SHA }} -n "Note that this release is automatically generated. No testing has been done." --generate-notes "Output-Chromium.zip" "Output-Firefox.zip" "ConsoleScript-UI.js" "ConsoleScript-Console.js"
+        run: gh release create ${{ env.SHORT_COMMIT_SHA }} -t ${{ env.SHORT_COMMIT_SHA }} -n "Note that this release is automatically generated. No testing has been done. Planning on using this on Safari for iOS? Replace every instance of 'MediaSource' with 'ManagedMediaSource' in the content of the script and, if the website uses it, you'll be fine." --generate-notes "Output-Chromium.zip" "Output-Firefox.zip" "ConsoleScript-UI.js" "ConsoleScript-Console.js"
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

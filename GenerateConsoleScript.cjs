@@ -26,7 +26,7 @@ function addDownloader() {
      * The div that'll contain all the links to download.
      */
     const listContainer = Object.assign(document.createElement("div"), {
-        style: "position: fixed; top: 55px; right: 15px; max-width: 45vw; padding: 10px; max-height: calc(100vh - 45px); border-radius: 8px; background-color: #151515; display: none; z-index: 99999999"
+        style: "position: fixed; top: 55px; right: 15px; max-width: 45vw; padding: 10px; max-height: 70vh; border-radius: 8px; background-color: #151515; display: none; z-index: 99999999; overflow: scroll"
     });
     /**
      * The button that shows or hides the list
@@ -54,15 +54,19 @@ function addDownloader() {
                 /**
                  * The anchor element that'll be used for downloading this item
                  */
-                const link = Object.assign(document.createElement("a"), {
+                const link = Object.assign(document.createElement("label"), {
                     textContent: `${item.title} [${item.mimeType}]`,
-                    download: item.title,
                     style: globalStyles.text
                 });
                 link.onclick = () => {
-                    if (link.href) return;
-                    setTimeout(() => { URL.revokeObjectURL(link.href); link.removeAttribute("href"); }, 5000);
-                    link.href = URL.createObjectURL(new Blob(item.data));
+                    const newLink = Object.assign(document.createElement("a"), {
+                        textContent: `${item.title} [${item.mimeType}]`,
+                        download: item.title,
+                        style: globalStyles.text,
+                        href: URL.createObjectURL(new Blob(item.data))
+                    });
+                    setTimeout(() => { URL.revokeObjectURL(newLink.href); }, 5000);
+                    newLink.click();
                 }
                 const button = Object.assign(document.createElement("button"), {
                     textContent: "Delete",

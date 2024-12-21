@@ -7,14 +7,14 @@
     function getSuggestedTitle() {
         const [title, id] = (() => {
             if (window.location.host.endsWith("youtube.com")) {
-                return [document.querySelector("#title > h1 > yt-formatted-string")?.textContent, new URLSearchParams(window.location.search).get("v")]
+                return [document.querySelector("#title > h1 > yt-formatted-string, .watch-content .slim-video-information-title > .yt-core-attributed-string")?.textContent, new URLSearchParams(window.location.search).get("v")]
             } else if (window.location.host.endsWith("twitch.tv")) {
                 return [document.querySelector("[data-a-target='stream-title']")?.textContent, ""]
             }
             return [undefined, undefined]
         })()
-        if (title && id) return `${title} [${id}]`;
-        return document.title;
+        if (title && id) return [`${title} [${id}]`, true];
+        return [document.title, !window.location.host.endsWith("youtube.com") && !window.location.host.endsWith("twitch.tv")];
     }
     let arr = [];
     /**
@@ -40,8 +40,9 @@
             function addTitle(id) {
                 const currentItem = arr.find(item => item.id === id);
                 if (!currentItem) return;
-                currentItem.title = (`${getSuggestedTitle()} [${mimeType.substring(0, mimeType.indexOf("/"))} ${id}].${mimeType.substring(mimeType.indexOf("/") + 1, mimeType.indexOf(";", mimeType.indexOf("/")))}`).replaceAll("<", "‹").replaceAll(">", "›").replaceAll(":", "∶").replaceAll("\"", "″").replaceAll("/", "∕").replaceAll("\\", "∖").replaceAll("|", "¦").replaceAll("?", "¿").replaceAll("*", "");
-                document.readyState !== "complete" && setTimeout(() => addTitle(id), 1500); // We'll try again when the page has been loaded
+                const [suggestedTitle, result] = getSuggestedTitle();
+                currentItem.title = (`${suggestedTitle} [${mimeType.substring(0, mimeType.indexOf("/"))} ${id}].${mimeType.substring(mimeType.indexOf("/") + 1, mimeType.indexOf(";", mimeType.indexOf("/")))}`).replaceAll("<", "‹").replaceAll(">", "›").replaceAll(":", "∶").replaceAll("\"", "″").replaceAll("/", "∕").replaceAll("\\", "∖").replaceAll("|", "¦").replaceAll("?", "¿").replaceAll("*", "");
+                (document.readyState !== "complete" || !result) && setTimeout(() => addTitle(id), 1500); // We'll try again when the page has been loaded
             }
             const id = crypto.randomUUID() ?? `${Math.random()}-${mimeType}-${Date.now()}`;
             arr[arr.length] = { mimeType, data: [], title: document.title, id };
