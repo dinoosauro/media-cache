@@ -51,7 +51,23 @@
                 be empty if the File System API will be used.</p>
             <select id="availableTabs"></select><br><br>
             <div id="availableDownloads"></div><br>
-            <button id="chooseDirectory">Save directly on the file system</button>
+            <button id="chooseDirectory">Save the currently-cached files on the file system and, if possible, the next
+                ones.</button>
+        </div><br>
+        <div class="card">
+            <h2>After the video ended...</h2>
+            <label class="flex hcenter gap">
+                <input type="checkbox" data-updatechoice="finalize_fs_stream_when_video_finishes">Close the file streams
+                (if the File System API is used)
+            </label>
+            <label class="flex hcenter gap">
+                <input type="checkbox" data-updatechoice="download_content_when_video_finishes">Download the videos (if
+                the File System API isn't used)
+            </label>
+            <label class="flex hcenter gap">
+                <input type="checkbox" data-updatechoice="delete_entries_when_video_finishes">Forbid adding further
+                content to that file
+            </label>
         </div><br>
         <div class="card">
             <h2>FAQ:</h2>

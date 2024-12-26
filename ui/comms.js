@@ -30,11 +30,15 @@
                         target: { tabId: ids[0].id },
                         files: ['/script.js'],
                         world: "MAIN"
-                    })
+                    });
+                    browserToUse.tabs.sendMessage(ids[0].id, { // Change what the script should do when the video ends according to the previously-selected things
+                        action: "updateChoices",
+                        content: await browserToUse.storage.sync.get(["finalize_fs_stream_when_video_finishes", "delete_entries_when_video_finishes", "download_content_when_video_finishes"])
+                    });
                     checkFunctionaly(); // Check again. If everything works, this card will be hidden
                 }
             }
-        })
+        });
     }
     checkFunctionaly();
     document.getElementById("addHostname").addEventListener("click", () => { // Add a new hostname (with the wildcard pattern) in the list of the alllowed URLs
@@ -75,13 +79,14 @@
             card.style.backgroundColor = "var(--cardsecond)";
             card.style.marginBottom = "15px";
             card.append(Object.assign(document.createElement("h3"), {
-                textContent: `Content ${item.id} [${item.mimeType}]`,
+                textContent: `${item.title} [ID: ${item.id}] [Mimetype: ${item.mimeType}]`,
             }), Object.assign(document.createElement("button"), {
-                textContent: "Download",
+                textContent: item.writable ? "Finalize stream" : "Download",
                 onclick: () => {
-                    browserToUse.tabs.sendMessage(+document.getElementById("availableTabs").value, { action: "downloadThis", content: item.id });
+                    browserToUse.tabs.sendMessage(+document.getElementById("availableTabs").value, { action: item.writable ? "fsFinalize" : "downloadThis", content: item.id });
                 }
-            }), document.createElement("br"),
+            }));
+            !item.writable && card.append(document.createElement("br"),
                 document.createElement("br"),
                 Object.assign(document.createElement("label"), {
                     style: "text-decoration: underline; margin-right: 10px;",
@@ -101,7 +106,7 @@
                 }));
             document.getElementById("availableDownloads").append(card);
         }
-
+        browserToUse.tabs.sendMessage(+document.getElementById("availableTabs").value, { action: "getChoices" });
     }
     browserToUse.runtime.onMessage.addListener((msg) => {
         switch (msg.action) {
@@ -110,6 +115,11 @@
                 tabResultStorage.set(msg.context.id, msg.content);
                 if (document.getElementById("availableTabs").children.length === 1) document.getElementById("availableTabs").dispatchEvent(new Event("change"));
                 break;
+            }
+            case "getChoices": { // Update the "After downloading, do this..." choices
+                for (const choice in msg.content) {
+                    document.querySelector(`[data-updatechoice='${choice}']`).checked = msg.content[choice];
+                }
             }
         }
     });
@@ -126,4 +136,17 @@
     document.getElementById("chooseDirectory").onclick = async () => { // Pick a directory for the File System API
         browserToUse.tabs.sendMessage(ids[0].id, { action: "fileSystem" });
     }
+
+
+    for (const checkbox of document.querySelectorAll("[data-updatechoice]")) { // Permit to change the behavior of the script after the video has ended
+        checkbox.addEventListener("change", () => {
+            const [checked, property] = [checkbox.checked, checkbox.getAttribute("data-updatechoice")];
+            browserToUse.storage.sync.set({ [property]: checked });
+            browserToUse.tabs.sendMessage(+document.getElementById("availableTabs").value, {
+                action: "updateChoices",
+                content: { [property]: checked }
+            });
+        });
+    }
+    browserToUse.tabs.sendMessage(ids[0].id, { action: "getChoices" }); // Ask the current choices to the script.
 })()

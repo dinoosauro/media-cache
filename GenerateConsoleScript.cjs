@@ -29,20 +29,36 @@ function addDownloader() {
         style: "position: fixed; top: 55px; right: 15px; max-width: 45vw; padding: 10px; max-height: 70vh; border-radius: 8px; background-color: #151515; display: none; z-index: 99999999; overflow: scroll"
     });
     /**
+     * The directory where the files of the current page will be created.
+     * This is saved also on the script since it's used when writing a single file in the FS.
+     * @type FileSystemDirectoryHandle
+     */
+    let fsPicker = undefined;
+    /**
      * The button that shows or hides the list
      */
     const downloadSwitch = Object.assign(document.createElement("div"), {
         style: "position: fixed; top: 15px; right: 15px; display: flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 8px; background-color: #151515; z-index: 99999999",
         onclick: () => {
-            listContainer.innerHTML = "";
+            for (const child of listContainer.children) child.remove();
             listContainer.style.display = listContainer.style.display === "none" ? "block" : "none";
             if (listContainer.style.display === "none") return;
             // We'll now create the instructions to download the video
             listContainer.append(Object.assign(document.createElement("p"), {
-                textContent: "Click on a name to read it as a Blob. Click again to download it (you have five seconds to click it again before it's deleted).",
+                textContent: "Click on a name to read it as a Blob. Click again to download it (you have five seconds to click it again before it's deleted), or, if you've enabled the File System API (entries in italic), to close the stream.",
                 style: globalStyles.text
             }), document.createElement("br"));
-            for (const item of $ActionHandler({ action: "getDownloads" }).content) {
+            // If possible, we'll also create the button to use the File System API
+            (typeof window.showDirectoryPicker === "function") && listContainer.append(Object.assign(document.createElement("button"), {
+                textContent: "Write the current (and if possible the next) files in a folder (FS API)",
+                style: `width: fit-content; ${globalStyles.button}`,
+                onclick: async () => {
+                    const picker = await window.showDirectoryPicker({ id: "MediaCachePicker", mode: "readwrite" });
+                    fsPicker = picker;
+                    $ActionHandler({ action: "fileSystem", content: picker });
+                }
+            }), document.createElement("br"), document.createElement("br"));
+            for (const item of $ActionHandler({ action: "getDownloads", everything: true }).content) {
                 /**
                  * The container for the link and the delete button
                  */
@@ -56,9 +72,15 @@ function addDownloader() {
                  */
                 const link = Object.assign(document.createElement("label"), {
                     textContent: `${item.title} [${item.mimeType}]`,
-                    style: globalStyles.text
+                    style: `${globalStyles.text} ${item.writable ? "font-style: italic" : ""}`
                 });
                 link.onclick = () => {
+                    if (item.writable) { // The File System API is being used, so we'll close the stream
+                        $ActionHandler({ action: "fsFinalize", content: item.id });
+                        div.remove();
+                        return;
+                    }
+                    // We'll create a new link so that the file can be downloaded
                     const newLink = Object.assign(document.createElement("a"), {
                         textContent: `${item.title} [${item.mimeType}]`,
                         download: item.title,
@@ -68,15 +90,29 @@ function addDownloader() {
                     setTimeout(() => { URL.revokeObjectURL(newLink.href); }, 5000);
                     newLink.click();
                 }
-                const button = Object.assign(document.createElement("button"), {
-                    textContent: "Delete",
-                    style: `width: fit-content; ${globalStyles.button}`,
-                    onclick: () => {
-                        $ActionHandler({ action: "deleteThis", content: { id: item.id } });
-                        div.remove();
-                    }
-                });
-                div.append(link, button);
+                div.append(link);
+                if (!item.writable) { // Delete the file
+                    const button = Object.assign(document.createElement("button"), {
+                        textContent: "Delete",
+                        style: `width: fit-content; ${globalStyles.button}`,
+                        onclick: () => {
+                            $ActionHandler({ action: "deleteThis", content: { id: item.id } });
+                            div.remove();
+                        }
+                    });
+                    div.append(button);
+                }
+                if (fsPicker && !item.writable) { // It's possible to write the file into the File System, but user authorization is required (since there's no writable – it needs to be created. The script automatically tries to create a new writable, but sometimes it fails due to the lack of user interaction). So, we'll display a button to force writing it.
+                    const button = Object.assign(document.createElement("button"), {
+                        textContent: "Write on FS",
+                        style: `width: fit-content; ${globalStyles.button}`,
+                        onclick: async () => {
+                            const file = await fsPicker.getFileHandle(item.title, { create: true });
+                            $ActionHandler({ action: "fileSystemSingleOperation", content: { file, handle: fsPicker, id: item.id } });
+                        }
+                    });
+                    div.append(button);
+                }
                 listContainer.append(div);
             }
             /**
@@ -95,10 +131,13 @@ function addDownloader() {
             });
             listContainer.append(document.createElement("br"), hideEverything);
         },
-        innerHTML: `<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M15.5 16.9997C15.7761 16.9997 16 17.2236 16 17.4997C16 17.7452 15.8231 17.9494 15.5899 17.9917L15.5 17.9997H4.5C4.22386 17.9997 4 17.7759 4 17.4997C4 17.2543 4.17688 17.0501 4.41012 17.0078L4.5 16.9997H15.5ZM10.0001 2.00195C10.2456 2.00195 10.4497 2.17896 10.492 2.41222L10.5 2.5021L10.496 14.296L14.1414 10.6476C14.3148 10.4739 14.5842 10.4544 14.7792 10.5892L14.8485 10.647C15.0222 10.8204 15.0418 11.0898 14.907 11.2848L14.8492 11.3541L10.3574 15.8541C10.285 15.9267 10.1957 15.9724 10.1021 15.9911L9.99608 16.0008C9.83511 16.0008 9.69192 15.9247 9.60051 15.8065L5.14386 11.3547C4.94846 11.1595 4.94823 10.8429 5.14336 10.6475C5.3168 10.4739 5.58621 10.4544 5.78117 10.5892L5.85046 10.647L9.496 14.288L9.5 2.50181C9.50008 2.22567 9.724 2.00195 10.0001 2.00195Z" fill="#fafafa"/>
-</svg>`
     });
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    for (const item of [["width", "20"], ["height", "20"], ["viewBox", "0 0 20 20"], ["fill", "none"], ["xmlns", "http://www.w3.org/2000/svg"]]) svg.setAttribute(item[0], item[1]);
+    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    for (const item of [["d", "M15.5 16.9997C15.7761 16.9997 16 17.2236 16 17.4997C16 17.7452 15.8231 17.9494 15.5899 17.9917L15.5 17.9997H4.5C4.22386 17.9997 4 17.7759 4 17.4997C4 17.2543 4.17688 17.0501 4.41012 17.0078L4.5 16.9997H15.5ZM10.0001 2.00195C10.2456 2.00195 10.4497 2.17896 10.492 2.41222L10.5 2.5021L10.496 14.296L14.1414 10.6476C14.3148 10.4739 14.5842 10.4544 14.7792 10.5892L14.8485 10.647C15.0222 10.8204 15.0418 11.0898 14.907 11.2848L14.8492 11.3541L10.3574 15.8541C10.285 15.9267 10.1957 15.9724 10.1021 15.9911L9.99608 16.0008C9.83511 16.0008 9.69192 15.9247 9.60051 15.8065L5.14386 11.3547C4.94846 11.1595 4.94823 10.8429 5.14336 10.6475C5.3168 10.4739 5.58621 10.4544 5.78117 10.5892L5.85046 10.647L9.496 14.288L9.5 2.50181C9.50008 2.22567 9.724 2.00195 10.0001 2.00195Z"], ["fill", "#fafafa"]]) path.setAttribute(item[0], item[1]);
+    svg.append(path);
+    downloadSwitch.append(svg);
     downloadSwitch.style.display = document.fullscreenElement ? "none" : "flex";
     document.addEventListener("fullscreenchange", () => { // If there's something in full screen, hide the download button
         downloadSwitch.style.display = document.fullscreenElement ? "none" : "flex";

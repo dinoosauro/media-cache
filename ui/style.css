@@ -29,7 +29,7 @@ body {
 .gap {
     gap: 10px;
 }
-button, input, select {
+button, input:not([type=checkbox]), select {
     background-color: var(--card);
     font-family: var(--font);
     border: 1px solid var(--text);
@@ -40,6 +40,36 @@ button, input, select {
     padding: 10px;
     color: var(--text);
 }
+
+input[type=checkbox] {
+    position: relative;
+    width: 60px;
+    height: 20px;
+    border-radius: 8px;
+    background-color: var(--cardsecond);
+    transition: 0.2s ease-in-out;
+    min-width: 60px;
+    appearance: none;
+    border: 0px solid var(--text);
+}
+input[type=checkbox]::before {
+    content: "";
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    top: 2px;
+    left: 2px;
+    border-radius: 50%;
+    background-color: var(--text);
+    transition: 0.2s ease-in-out;
+}
+input[type=checkbox]:checked::before {
+    left: 42px;
+}
+input[type=checkbox]:checked {
+    background-color: var(--accent);
+}
+
 select {
     background-color: var(--cardsecond);
 }

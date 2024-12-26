@@ -72,6 +72,10 @@
                             files: ['script.js'],
                             world: "MAIN"
                         });
+                        browserToUse.tabs.sendMessage(ids[0].id, { // Update user preferences
+                            action: "updateChoices",
+                            content: await browserToUse.storage.sync.get(["finalize_fs_stream_when_video_finishes", "delete_entries_when_video_finishes", "download_content_when_video_finishes"])
+                        });
                         await getPromise(); // Check again
                         resolve();
                     }

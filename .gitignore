@@ -3,6 +3,7 @@ package-lock.json
 Output-Chromium.zip
 Output-Firefox.zip
 Output-Firefox
+Output-Chromium
 .DS_Store
 ConsoleScript-UI.js
 ConsoleScript-Console.js
