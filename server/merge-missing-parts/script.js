@@ -1,5 +1,5 @@
 (async () => {
-    const result = await navigator.serviceWorker.register('./serviceWorker.js');
+    const result = await navigator.serviceWorker.register('./serviceWorker.js', { scope: window.location.href.substring(0, window.location.href.lastIndexOf("/") + 1) });
     if (navigator.onLine) await result.update();
     const selectVideoBtn = document.getElementById("selectVideo");
     const selectJsonBtn = document.getElementById("selectJson");
