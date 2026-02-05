@@ -61,12 +61,17 @@ After playing the resource, you can choose from a Select in the popup the page
 whose video/audio content you want to download. Click on the "Download" button
 to download them.
 
-**Tip: On Chromium-based browsers, you can write files directly to a folder. Use
-this option to save memory**
-
 While the download of the videos should automatically start when the page is
 closed, or when the video ends playing, it might not always work, so it's
 suggested to download them directly from the extension popup.
+
+### Saving direclty on your device
+
+By default, the extension keeps all the media chunks in memory before downloading them at the end of the stream. This means that the memory usage might be high. However, you can prevent this in two ways:
+
+- On Chromium-based browsers, you can write all the chunks directly to a folder. To do this, open the extension and click on the `Save the currently-cached files on the file system` button;
+- If you're using other browsers, or you need to save the media file on another device, you can start a local server that'll save all the chunks direclty on your device. You'll need to provide the server URL in the `Local save` section of the extension UI. To learn how to start the local server, see the [server folder](/server/).
+
 
 ## Disclaimer
 

@@ -8,3 +8,5 @@ Output-Chromium
 ConsoleScript-UI.js
 ConsoleScript-Console.js
 ConsoleScript.js
+test
+server/test.js

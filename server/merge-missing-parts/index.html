@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Merge Missing Parts</title>
+    <link rel="stylesheet" href="../../ui/style.css">
+        <link href="https://fonts.googleapis.com/css2?family=Work+Sans:ital,wght@0,100..900;1,100..900&display=swap"
+        rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="../../ui/assets/icon.svg" />
+</head>
+
+<body>
+    <div class="flex hcenter wcenter gap">
+        <img src="../../ui/assets/icon.svg" style="width: 48px; height: 48px;">
+        <h1>MediaCache</h1>
+    </div>
+    <p>This tool allows you to complete the files that haven't completely been uploaded to the server.</p><br>
+    <div id="selectVideoDiv">
+        <button id="selectVideo">Select the media file to complete</button><br><br>
+        <p id="emptyFile" class="underline hover">Or start with an empty file</p>
+    </div>
+    <button id="selectJson" style="display: none;">Select the JSON file with the missing parts</button>
+    <div class="card" id="progressCard" style="display: none;">
+        <h2>Progress:</h2>
+        <progress style="width: 100%;" id="progress"></progress>
+        <p>The download should be started. If not, make sure you've pop-up windows enabled. Do not close this window until the download has been completed.</p>
+    </div>
+    <script src="./script.js"></script>
+</body>
+
+</html>

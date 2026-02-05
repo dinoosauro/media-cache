@@ -40,6 +40,9 @@ button, input:not([type=checkbox]), select {
     padding: 10px;
     color: var(--text);
 }
+button {
+    transition: filter 0.2s ease-in-out;
+}
 
 input[type=checkbox] {
     position: relative;
@@ -78,4 +81,17 @@ button {
 }
 a {
     color: var(--text);
+}
+
+button:hover {
+    filter: brightness(135%);
+}
+button:hover, .hover:hover {
+    cursor: pointer;
+}
+button:active {
+    filter: brightness(160%);
+}
+.underline {
+    text-decoration: underline;
 }

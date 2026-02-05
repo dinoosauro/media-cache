@@ -55,6 +55,17 @@
                 ones.</button>
         </div><br>
         <div class="card">
+            <h2>Local save:</h2>
+            <p>If you have access to a Python interpreter, you can <a href="https://github.com/dinoosauro/media-cache/tree/main/server" target="_blank">download and run a script</a> so that all the content of media-cache is saved directly on your device. To enable this feature, write the server URL below. You might need to refresh the webpage later to apply the changes.</p>
+            <div class="card" style="background-color: var(--cardsecond);">
+                <label class="flex hcenter gap">
+                    Server URL:
+                    <input type="text" data-updatechoice="server_link" placeholder="Put the URL here (ex: http://localhost:1342)"><br><br>
+                </label>
+            </div>
+            <p>If the server becomes unreachable or unavailable during the download process, you'll be able to download from the extension UI a JSON file with the missing parts. You can later merge the two files and obtain the complete video/audio by <a href="https://dinoosauro.github.io/media-cache/server/merge-missing-parts/" target="_blank">clicking here</a>. </p>
+        </div><br>
+        <div class="card">
             <h2>After the video ended...</h2>
             <label class="flex hcenter gap">
                 <input type="checkbox" data-updatechoice="finalize_fs_stream_when_video_finishes">Close the file streams
@@ -68,6 +79,18 @@
                 <input type="checkbox" data-updatechoice="delete_entries_when_video_finishes">Forbid adding further
                 content to that file
             </label>
+            <label class="flex hcenter gap">
+                <input type="checkbox" data-updatechoice="keep_object_url">Keep the download content in the browser memory, so that it can be redownloaded from the used URL
+            </label>
+        </div><br>
+        <div class="card">
+            <h2>Advanced:</h2>
+            <label class="flex hcenter gap">
+                <input type="checkbox" data-updatechoice="freeze_api"> Try avoiding external modifications to the API used to communicate between the website and the extension
+            </label><br>
+            <label class="flex hcenter gap">
+                <input type="checkbox" data-updatechoice="add_5s_delay_before_download">Add a 5 seconds delay before downloading a file. This should be useful on Firefox for Android, so that you have time to close the extension window before the download pop-up appears.
+            </label>
         </div><br>
         <div class="card">
             <h2>FAQ:</h2>
@@ -79,11 +102,22 @@
                     later.</p>
             </details>
             <details>
+                <summary>Why does the connection to the local server fail?</summary>
+                <p>Make sure you've set the correct address, and also that you've specified the port the local server is running on.<br>Note that, if the local server is hosted on another device and you've exposed it to your local network, the request will probably fail since your browser will consider it an insecure connection. To solve this issue, you'll need to disable the mixed content protection of your browser:
+                <ul>
+                    <li>On Firefox, go to <code>about:config</code>, and then disable the <code>security.mixed_content.block_active_content</code> flag. Make sure to enable it again after you've finished using the local server.</li>
+                    <li>On Chromium browsers, go to <code>chrome://settings/content/siteDetails?site=YOUR_SERVER_URL</code>, and then enable the <code>Insecure content</code> authorization.</li>
+                </ul>
+                </p>
+            </details>
+            <details>
                 <summary>Open Source licenses</summary>
                 <p>Icon from Microsoft's <a href="https://github.com/microsoft/fluentui-system-icons"
                         target="_blank">Fluent UI Icons</a>. This extension is available <a
                         href="https://github.com/Dinoosauro/media-cache" target="_blank">on GitHub</a></p>
             </details>
+            <br>
+            <p>media-cache version <span id="version"></span>. Use this extension only if you've the authorization from the content owner. The author declines any responsability from the usage of the extension.</p>
         </div>
         <script src="./comms.js"></script>
     </main>

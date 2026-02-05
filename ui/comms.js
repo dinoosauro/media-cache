@@ -33,7 +33,7 @@
                     });
                     browserToUse.tabs.sendMessage(ids[0].id, { // Change what the script should do when the video ends according to the previously-selected things
                         action: "updateChoices",
-                        content: await browserToUse.storage.sync.get(["finalize_fs_stream_when_video_finishes", "delete_entries_when_video_finishes", "download_content_when_video_finishes"])
+                        content: await browserToUse.storage.sync.get(["finalize_fs_stream_when_video_finishes", "delete_entries_when_video_finishes", "download_content_when_video_finishes", "server_link", "keep_object_url", "freeze_api", "add_5s_delay_before_download"])
                     });
                     checkFunctionaly(); // Check again. If everything works, this card will be hidden
                 }
@@ -80,16 +80,29 @@
             card.style.marginBottom = "15px";
             card.append(Object.assign(document.createElement("h3"), {
                 textContent: `${item.title} [ID: ${item.id}] [Mimetype: ${item.mimeType}]`,
-            }), Object.assign(document.createElement("button"), {
+            }));
+            !item.isFromFetch ? card.append(Object.assign(document.createElement("button"), {
                 textContent: item.writable ? "Finalize stream" : "Download",
                 onclick: () => {
                     browserToUse.tabs.sendMessage(+document.getElementById("availableTabs").value, { action: item.writable ? "fsFinalize" : "downloadThis", content: item.id });
                 }
+            })) : card.append(Object.assign(document.createElement("label"), {
+                textContent: "Sent to local server"
             }));
-            !item.writable && card.append(document.createElement("br"),
+            item.itemsToSend && card.append(document.createElement("br"), document.createElement("br"), Object.assign(document.createElement("label"), {
+                textContent: "Some data couldn't be sent to the server. You can download a JSON file with all the information necessary to build the output file, or you can remove everything from memory. "
+            }), Object.assign(document.createElement("label"), {
+                className: "underline hover",
+                textContent: "Download missing data",
+                onclick: () => {
+                    browserToUse.tabs.sendMessage(+document.getElementById("availableTabs").value, { action: "downloadMissingJson", content: { id: item.id } });
+                }
+            }))
+            !item.writable && (!item.isFromFetch || item.itemsToSend) && card.append(document.createElement("br"),
                 document.createElement("br"),
                 Object.assign(document.createElement("label"), {
-                    style: "text-decoration: underline; margin-right: 10px;",
+                    className: "underline hover",
+                    style: "margin-right: 10px;",
                     textContent: "Delete current data",
                     onclick: () => {
                         browserToUse.tabs.sendMessage(+document.getElementById("availableTabs").value, { action: "deleteThis", content: { id: item.id, permanent: false } });
@@ -98,7 +111,7 @@
                 }),
                 Object.assign(document.createElement("label"), {
                     textContent: "Delete current and future data",
-                    style: "text-decoration: underline",
+                    className: "underline hover",
                     onclick: () => {
                         browserToUse.tabs.sendMessage(+document.getElementById("availableTabs").value, { action: "deleteThis", content: { id: item.id, permanent: true } });
                         card.remove();
@@ -117,8 +130,10 @@
                 break;
             }
             case "getChoices": { // Update the "After downloading, do this..." choices
+                console.log(msg);
                 for (const choice in msg.content) {
-                    document.querySelector(`[data-updatechoice='${choice}']`).checked = msg.content[choice];
+                    const item = document.querySelector(`[data-updatechoice='${choice}']`);
+                    item[item.type === "checkbox" ? "checked" : "value"] = msg.content[choice];
                 }
             }
         }
@@ -139,8 +154,8 @@
 
 
     for (const checkbox of document.querySelectorAll("[data-updatechoice]")) { // Permit to change the behavior of the script after the video has ended
-        checkbox.addEventListener("change", () => {
-            const [checked, property] = [checkbox.checked, checkbox.getAttribute("data-updatechoice")];
+        checkbox.addEventListener(checkbox.type === "checkbox" ? "change" : "input", () => {
+            const [checked, property] = [checkbox.type === "checkbox" ? checkbox.checked : checkbox.value, checkbox.getAttribute("data-updatechoice")];
             browserToUse.storage.sync.set({ [property]: checked });
             browserToUse.tabs.sendMessage(+document.getElementById("availableTabs").value, {
                 action: "updateChoices",
@@ -149,4 +164,6 @@
         });
     }
     browserToUse.tabs.sendMessage(ids[0].id, { action: "getChoices" }); // Ask the current choices to the script.
+
+    document.getElementById("version").textContent = browserToUse.runtime.getManifest().version;
 })()
