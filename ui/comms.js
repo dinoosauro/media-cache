@@ -33,7 +33,7 @@
                     });
                     browserToUse.tabs.sendMessage(ids[0].id, { // Change what the script should do when the video ends according to the previously-selected things
                         action: "updateChoices",
-                        content: await browserToUse.storage.sync.get(["finalize_fs_stream_when_video_finishes", "delete_entries_when_video_finishes", "download_content_when_video_finishes", "server_link", "keep_object_url", "freeze_api", "add_5s_delay_before_download"])
+                        content: await browserToUse.storage.sync.get(["finalize_fs_stream_when_video_finishes", "delete_entries_when_video_finishes", "download_content_when_video_finishes", "server_link", "keep_object_url", "freeze_api", "add_5s_delay_before_download", "send_all_failed_requests_if_one_is_successful"])
                     });
                     checkFunctionaly(); // Check again. If everything works, this card will be hidden
                 }
@@ -68,6 +68,15 @@
         }));
     }
     /**
+     * Show the dialog that tells the user to refresh the list.
+     */
+    function showRefreshDialog() {
+        document.getElementById("refreshContainer").style.display = "block";
+        setTimeout(() => {
+            document.getElementById("refreshContainer").style.opacity = "1";
+        });
+    }
+    /**
      * A Map that contains all the available downloads from the various content script that are being run
      */
     const tabResultStorage = new Map();
@@ -94,8 +103,17 @@
             }), Object.assign(document.createElement("label"), {
                 className: "underline hover",
                 textContent: "Download missing data",
+                style: "margin-right: 10px",
                 onclick: () => {
                     browserToUse.tabs.sendMessage(+document.getElementById("availableTabs").value, { action: "downloadMissingJson", content: { id: item.id } });
+                    showRefreshDialog();
+                }
+            }), Object.assign(document.createElement("label"), {
+                className: "underline hover",
+                textContent: "Try sending again",
+                onclick: () => {
+                    browserToUse.tabs.sendMessage(+document.getElementById("availableTabs").value, { action: "trySendAgain", content: { id: item.id } });
+                    showRefreshDialog();
                 }
             }))
             !item.writable && (!item.isFromFetch || item.itemsToSend) && card.append(document.createElement("br"),
@@ -106,7 +124,7 @@
                     textContent: "Delete current data",
                     onclick: () => {
                         browserToUse.tabs.sendMessage(+document.getElementById("availableTabs").value, { action: "deleteThis", content: { id: item.id, permanent: false } });
-                        card.remove();
+                        showRefreshDialog();
                     }
                 }),
                 Object.assign(document.createElement("label"), {
@@ -139,13 +157,27 @@
         }
     });
     /**
-    * Get the ID of all the tabs that are being run
-    * @type chrome.tabs.Tab[]
-    */
-    const allTabs = await new Promise((resolve) => browserToUse.tabs.query({}, resolve));
-    for (const tab of allTabs) {
-        browserToUse.tabs.sendMessage(tab.id, { action: "getDownloads", content: { id: tab.id, title: tab.title } }); // Ask the content script the available downloads
+     * Get the information about the content cached in the tabs
+     */
+    async function getContentInTabs() {
+        /**
+        * Get the ID of all the tabs that are being run
+        * @type chrome.tabs.Tab[]
+        */
+        const allTabs = await new Promise((resolve) => browserToUse.tabs.query({}, resolve));
+        for (const tab of allTabs) {
+            browserToUse.tabs.sendMessage(tab.id, { action: "getDownloads", content: { id: tab.id, title: tab.title } }); // Ask the content script the available downloads
+        }
     }
+    await getContentInTabs();
+
+    document.getElementById("forceRefresh").addEventListener("click", async () => { // Make the refresh button work
+        await getContentInTabs();
+        document.getElementById("refreshContainer").style.opacity = "0";
+        setTimeout(() => {
+            document.getElementById("refreshContainer").style.display = "none";
+        }, 210);
+    });
     const allowedUrls = await new Promise((resolve) => browserToUse.storage.sync.get({ urls: [] }, resolve));
     allowedUrls.urls.forEach(origin => addItemToAllowedList(origin)); // Show the added URLs in the UI
     document.getElementById("chooseDirectory").onclick = async () => { // Pick a directory for the File System API

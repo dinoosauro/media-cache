@@ -12,7 +12,7 @@
  * @property {FileSystemFileHandle | undefined} file If the File System API is being used, the FileSystemFileHandle object used to get the writable.
  * @property {boolean | undefined} isFromFetch If the server mode has been used to save at least a part of the media file.
  * @property {number | undefined} position If the server mode is being used, it indicates the position of the next chunk, in bytes.
- * @property {ItemsToSend[] | undefined} itemsToSend If the serrver mode is being used, AND if an error occurred while sending the chunk to the server, this property will contain the array of all the chunks that couldn't be sent.
+ * @property {ItemsToSend[] | undefined} itemsToSend If the server mode is being used, AND if an error occurred while sending the chunk to the server, this property will contain the array of all the chunks that couldn't be sent.
  * @property {number | undefined} successSend If the server mode is being used, this property indicates the number of chunks that have been successfully sent to the server.
  */
 

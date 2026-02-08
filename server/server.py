@@ -3,7 +3,7 @@ import urllib.parse
 import os
 import hashlib
 
-from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
+from http.server import HTTPServer, BaseHTTPRequestHandler
 
 port = 1342
 address = "localhost"
@@ -24,6 +24,10 @@ class ServerRequestHandler(BaseHTTPRequestHandler):
             self.send_header("Access-Control-Allow-Methods", "PUT, OPTIONS")
             self.send_header("Access-Control-Allow-Headers", "Content-Type")
             self.end_headers()
+    def do_GET(self):
+         self.send_response(200)
+         self.end_headers()
+         self.wfile.write(bytes("Server running", "utf-8"))
     def do_PUT(self): 
         url_type = urllib.parse.urlparse(f"http://localhost{self.path}")
         self.send_response(204)
@@ -46,6 +50,6 @@ class ServerRequestHandler(BaseHTTPRequestHandler):
                         bytes_remaining -= len(chunk)
         self.end_headers()
     
-server = ThreadingHTTPServer((address, port), ServerRequestHandler)
-print(f"Server started on port {port}")
+server = HTTPServer((address, port), ServerRequestHandler)
+print(f"---- Starting server ----\nAddress:     {address}\nPort:        {port}\nFolder:      {sys.argv[1]}")
 server.serve_forever()

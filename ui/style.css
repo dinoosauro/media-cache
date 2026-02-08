@@ -95,3 +95,18 @@ button:active {
 .underline {
     text-decoration: underline;
 }
+.topDialog {
+    backdrop-filter: blur(8px) brightness(60%); 
+    position: fixed; 
+    top: 15px;
+    width: calc(80vw - 40px);
+    min-width: calc(80vw - 40px);
+    left: 10vw;
+    padding: 20px;
+    border-radius: 16px;
+    border: 1px solid var(--text);
+}
+.opacity {
+    transition: opacity 0.2s ease-in-out;
+    opacity: 0;
+}

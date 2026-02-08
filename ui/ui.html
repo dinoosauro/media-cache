@@ -20,6 +20,9 @@
         <p>Download the media content you see on websites</p>
     </header>
     <main>
+        <div class="topDialog opacity" id="refreshContainer" style="display: none;">
+            <strong>The list is outdated. <label class="underline hover" id="forceRefresh">Refresh now</label></strong>
+        </div>
         <div class="card" id="notWorking" style="background-color: darkred; display: none;">
             <h2>The script isn't running on this page.</h2>
             <p>Make sure you've added this hostname in the list, then close the webpage and open it again.
@@ -70,15 +73,15 @@
             <label class="flex hcenter gap">
                 <input type="checkbox" data-updatechoice="finalize_fs_stream_when_video_finishes">Close the file streams
                 (if the File System API is used)
-            </label>
+            </label><br>
             <label class="flex hcenter gap">
                 <input type="checkbox" data-updatechoice="download_content_when_video_finishes">Download the videos (if
                 the File System API isn't used)
-            </label>
+            </label><br>
             <label class="flex hcenter gap">
                 <input type="checkbox" data-updatechoice="delete_entries_when_video_finishes">Forbid adding further
                 content to that file
-            </label>
+            </label><br>
             <label class="flex hcenter gap">
                 <input type="checkbox" data-updatechoice="keep_object_url">Keep the download content in the browser memory, so that it can be redownloaded from the used URL
             </label>
@@ -87,6 +90,9 @@
             <h2>Advanced:</h2>
             <label class="flex hcenter gap">
                 <input type="checkbox" data-updatechoice="freeze_api"> Try avoiding external modifications to the API used to communicate between the website and the extension
+            </label><br>
+            <label class="flex hcenter gap">
+                <input type="checkbox" data-updatechoice="send_all_failed_requests_if_one_is_successful">When using server mode, send again all the failed chunk requests if a request is successful. Disable if you're facing issues with the output media.
             </label><br>
             <label class="flex hcenter gap">
                 <input type="checkbox" data-updatechoice="add_5s_delay_before_download">Add a 5 seconds delay before downloading a file. This should be useful on Firefox for Android, so that you have time to close the extension window before the download pop-up appears.

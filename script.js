@@ -10,7 +10,8 @@
         server_link: false,
         keep_object_url: false,
         freeze_api: false,
-        add_5s_delay_before_download: false
+        add_5s_delay_before_download: false,
+        send_all_failed_requests_if_one_is_successful: true
     }
 
     /**
@@ -76,13 +77,17 @@
     /**
      * Write the chunks added in the `data` property of the provided DataObject by sending them to a server.
      * @param {string | DataObject} id either the ID of the file that is being cached, or the data object.
+     * @param {boolean | undefined} fromItemsToSend if the script should try sending again the items that couldn't be sent instead of sending the new items
      * @returns 
      */
-    async function fetchWriteOperation(id) {
+    async function fetchWriteOperation(id, fromItemsToSend) {
+        /**
+         * @type DataObject
+         */
         const currentItem = typeof id === "string" ? arr.find(item => item.id === id) : id;
         if (!currentItem.finalTitle) { // Before creating the new file, let's wait that the title is considered final
             await new Promise(res => setTimeout(res, 1000));
-            fetchWriteOperation(id);
+            fetchWriteOperation(id, fromItemsToSend);
             return;
         }
         currentItem.isFromFetch = true; // Mark that the fetch operation is being used
@@ -114,9 +119,22 @@
             promise.then(() => { // We'll just increase the `successSend` property, so that the script knows that at least a chunk has been sent to the user, since otherwise we could just download the entire media file without transforming it into a JSON file.
                 if (typeof currentItem.successSend === "undefined") currentItem.successSend = 0;
                 currentItem.successSend++;
+                if ((currentItem.itemsToSend?.length ?? 0) !== 0 && !fromItemsToSend && CUSTOM_BEHAVIOR.send_all_failed_requests_if_one_is_successful) { // Let's try sending the chunks again to the server
+                    while (currentItem.itemsToSend.length !== 0) {
+                        const item = currentItem.itemsToSend.shift();
+                        sendToServer(item.data, item.position);
+                    }
+                }
             });
         }
-        while (currentItem.data.length !== 0) sendToServer(currentItem.data.shift(), currentItem.position)
+        if (fromItemsToSend) {
+            while (currentItem.itemsToSend.length !== 0) {
+                const itemToSend = currentItem.itemsToSend.shift();
+                sendToServer(itemToSend.data, itemToSend.position);
+            }
+        } else {
+            while (currentItem.data.length !== 0) sendToServer(currentItem.data.shift(), currentItem.position)
+        }
     }
     /**
      * If a File is being created in the user's file system
@@ -354,7 +372,6 @@
                         configurable: false
                     });
                     Object.freeze(BroadcastChannel.prototype);
-
                 }
                 break;
             case "getChoices": // Return the CUSTOM_BEHAVIOR settings
@@ -371,6 +388,11 @@
                 if (arr[getIndex].itemsToSend && arr[getIndex].itemsToSend.length !== 0) {
                     downloadMissingJson(arr[getIndex]);
                 }
+                break;
+            }
+            case "trySendAgain": { // Send again all the chunks to the server
+                const item = arr.find(i => i.id === msg.data.content.id);
+                if (item) fetchWriteOperation(item, true);
                 break;
             }
         }
