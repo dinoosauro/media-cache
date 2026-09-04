@@ -11,7 +11,12 @@
         keep_object_url: false,
         freeze_api: false,
         add_5s_delay_before_download: false,
-        send_all_failed_requests_if_one_is_successful: true
+        send_all_failed_requests_if_one_is_successful: true,
+        /**
+         * Map a particular mimetype to its extension
+         * @type [string, string][]
+         */
+        mimetype_change: []
     }
 
     /**
@@ -179,7 +184,10 @@
                 const currentItem = arr.find(item => item.id === id);
                 if (!currentItem) return;
                 const [suggestedTitle, result] = getSuggestedTitle();
-                currentItem.title = (`${suggestedTitle} [${mimeType.substring(0, mimeType.indexOf("/"))} ${id}].${mimeType.substring(mimeType.indexOf("/") + 1, mimeType.indexOf(";", mimeType.indexOf("/")))}`).replaceAll("<", "‹").replaceAll(">", "›").replaceAll(":", "∶").replaceAll("\"", "″").replaceAll("/", "∕").replaceAll("\\", "∖").replaceAll("|", "¦").replaceAll("?", "¿").replaceAll("*", "");
+                // Check if a custom extension should be used for this mimetype
+                const suggestedMimetype = mimeType.substring(0, mimeType.indexOf(";")).trim();
+                let suggestedExtension = CUSTOM_BEHAVIOR.mimetype_change.find(i => i[0] === suggestedMimetype);
+                currentItem.title = (`${suggestedTitle} [${mimeType.substring(0, mimeType.indexOf("/"))} ${id}].${suggestedExtension ? suggestedExtension[1] : mimeType.substring(mimeType.indexOf("/") + 1, mimeType.indexOf(";", mimeType.indexOf("/")))}`).replaceAll("<", "‹").replaceAll(">", "›").replaceAll(":", "∶").replaceAll("\"", "″").replaceAll("/", "∕").replaceAll("\\", "∖").replaceAll("|", "¦").replaceAll("?", "¿").replaceAll("*", "");
                 if ((document.readyState !== "complete" || !result) && timeout < 4) {
                     setTimeout(() => addTitle(id, timeout + 1), 1500); // We'll try again when the page has been loaded
                     finalTitle = false;
@@ -239,7 +247,7 @@
         const currentItem = arr.find(item => item.id === id);
         if (!currentItem || currentItem.writable) return;
         if ((currentItem.data.length !== 0 && !downloadFromItemsNotSent) || (currentItem.itemsToSend?.length ?? 0) !== 0) {
-            const blob = new Blob(downloadFromItemsNotSent ? currentItem.itemsToSend.sort((a, b) => a.position - b.position).map(i => i.data) : currentItem.data);
+            const blob = new Blob(downloadFromItemsNotSent ? currentItem.itemsToSend.sort((a, b) => a.position - b.position).map(i => i.data) : currentItem.data, {type: "application/octet-stream"});
             if (blob.size !== 0) { // Avoid empty downloads
                 const a = Object.assign(document.createElement("a"), {
                     download: currentItem.title,
@@ -359,6 +367,7 @@
             }
             case "updateChoices": // Update the CUSTOM_BEHAVIOR settings
                 for (const key in msg.data.content) CUSTOM_BEHAVIOR[key] = !!msg.data.content[key];
+                if (msg.data.content.mimetype_change) CUSTOM_BEHAVIOR.mimetype_change = msg.data.content.mimetype_change;
                 comms.postMessage({ from: "b", action: "getChoices", content: CUSTOM_BEHAVIOR });
                 if (CUSTOM_BEHAVIOR.freeze_api) { // Block some of the APIs used by this script from being modified.
                     Object.defineProperty(window, "BroadcastChannel", {

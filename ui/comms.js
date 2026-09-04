@@ -11,6 +11,12 @@
     const ids = await new Promise((resolve) => {
         browserToUse.tabs.query({ active: true }, resolve)
     })
+
+    /**
+    * Map a particular mimetype to its extension
+    * @type [string, string][]
+    */
+    let mimetype_change = []
     /**
      * Check that the extension is enabled and is working
      */
@@ -33,7 +39,7 @@
                     });
                     browserToUse.tabs.sendMessage(ids[0].id, { // Change what the script should do when the video ends according to the previously-selected things
                         action: "updateChoices",
-                        content: await browserToUse.storage.sync.get(["finalize_fs_stream_when_video_finishes", "delete_entries_when_video_finishes", "download_content_when_video_finishes", "server_link", "keep_object_url", "freeze_api", "add_5s_delay_before_download", "send_all_failed_requests_if_one_is_successful"])
+                        content: await browserToUse.storage.sync.get(["finalize_fs_stream_when_video_finishes", "delete_entries_when_video_finishes", "download_content_when_video_finishes", "server_link", "keep_object_url", "freeze_api", "add_5s_delay_before_download", "send_all_failed_requests_if_one_is_successful", "mimetype_change"])
                     });
                     checkFunctionaly(); // Check again. If everything works, this card will be hidden
                 }
@@ -148,14 +154,64 @@
                 break;
             }
             case "getChoices": { // Update the "After downloading, do this..." choices
-                console.log(msg);
                 for (const choice in msg.content) {
                     const item = document.querySelector(`[data-updatechoice='${choice}']`);
-                    item[item.type === "checkbox" ? "checked" : "value"] = msg.content[choice];
+                    if (item) item[item.type === "checkbox" ? "checked" : "value"] = msg.content[choice];
+                    if (choice === "mimetype_change") {
+                        mimetype_change = msg.content[choice];
+                        document.getElementById("addedMaps").innerHTML = "";
+                        for (const element of mimetype_change) buildMimetypeChangeList(element[0], element[1]);
+                    }
                 }
             }
         }
     });
+
+    document.getElementById("addExtensionMap").addEventListener("click", () => { // Map a mimetype to a new extension
+        const [mimetype, extension] = [document.getElementById("extensionMimetype").value, document.getElementById("extensionToSet").value];
+        const index = mimetype_change.findIndex(i => i[0] === mimetype);
+        if (index !== -1) { // Delete the previous entry for the same mimetype
+            mimetype_change.splice(index, 1);
+            document.getElementById("addedMaps").children.item(index).remove();
+        }
+        mimetype_change.push([mimetype, extension]);
+        buildMimetypeChangeList(mimetype, extension);
+        updateMimetypeList();
+    })
+
+    /**
+     * Add an elemento to the custom mimetype extension list
+     * @param {string} mimetype the mimetype the extension is tied to
+     * @param {string} extension the extension the mimetype is tied to
+     */
+    function buildMimetypeChangeList(mimetype, extension) {
+        const li = Object.assign(document.createElement("li"), {
+            textContent: `${mimetype}: ${extension}`,
+            onclick: () => {
+                const index = mimetype_change.findIndex(i => i[0] === mimetype);
+                if (index !== -1) {
+                    mimetype_change.splice(index, 1);
+                    li.remove();
+                    updateMimetypeList();
+                }
+            }
+        });
+        document.getElementById("addedMaps").append(li);
+    }
+    // Get the already-added mimetypes
+    const currentElementsInMimetype = await new Promise((resolve) => browserToUse.storage.sync.get({ mimetype_change: [] }, resolve));
+    mimetype_change = currentElementsInMimetype.mimetype_change;
+    mimetype_change.forEach(i => buildMimetypeChangeList(i[0], i[1]));
+    /**
+     * Store the updated custom mimetypes extension and send them to the application
+     */
+    function updateMimetypeList() {
+        browserToUse.storage.sync.set({ mimetype_change });
+        browserToUse.tabs.sendMessage(+document.getElementById("availableTabs").value, {
+            action: "updateChoices",
+            content: { mimetype_change }
+        });
+    }
     /**
      * Get the information about the content cached in the tabs
      */
