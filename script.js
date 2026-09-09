@@ -188,7 +188,7 @@
                 const suggestedMimetype = mimeType.substring(0, mimeType.indexOf(";")).trim();
                 let suggestedExtension = CUSTOM_BEHAVIOR.mimetype_change.find(i => i[0] === suggestedMimetype);
                 currentItem.title = (`${suggestedTitle} [${mimeType.substring(0, mimeType.indexOf("/"))} ${id}].${suggestedExtension ? suggestedExtension[1] : mimeType.substring(mimeType.indexOf("/") + 1, mimeType.indexOf(";", mimeType.indexOf("/")))}`).replaceAll("<", "‹").replaceAll(">", "›").replaceAll(":", "∶").replaceAll("\"", "″").replaceAll("/", "∕").replaceAll("\\", "∖").replaceAll("|", "¦").replaceAll("?", "¿").replaceAll("*", "");
-                if ((document.readyState !== "complete" || !result) && timeout < 4) {
+                if ((document.readyState !== "complete" || !result || new URLSearchParams(window.location.search.substring(1)).get("list")) && timeout < 4) { // If the video displayed is from a list, we'll use all the four timeout so that the webpage can be updated with the new title
                     setTimeout(() => addTitle(id, timeout + 1), 1500); // We'll try again when the page has been loaded
                     finalTitle = false;
                 } else {
